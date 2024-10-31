@@ -5,6 +5,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import root_mean_squared_error, r2_score
 from sklearn.linear_model import Ridge, Lasso
 
+from sklearn.ensemble import GradientBoostingRegressor
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -181,22 +183,30 @@ X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.5, random_
 model = Ridge(alpha=3.2)
 model.fit(X_train, Y_train)
 
-Y_pred = model.predict(testDf[chosenFeatures])
+bst = GradientBoostingRegressor(random_state=0)
+bst.fit(X_train, Y_train)
+bst_pred = bst.predict(X_test)
+
+Y_pred_boost = bst.predict(testDf[chosenFeatures])
+Y_pred_ridge = model.predict(testDf[chosenFeatures])
 
 #rmse = root_mean_squared_error(Y_test, Y_pred)
 #r_sq = r2_score(Y_test, Y_pred)
 
+#rmse = root_mean_squared_error(Y_test, bst_pred)
+#r_sq = r2_score(Y_test, bst_pred)
+
 #print('RMSE:', rmse)
 #print('R2:', r_sq)
 
-submission = pd.DataFrame(Y_pred)
+submission = pd.DataFrame(Y_pred_boost)
 submission['Id'] = testDf['Id']
 submission.set_index('Id')
 submission.rename(columns = {0:'SalePrice'}, inplace = True)
 columns_titles = ["Id","SalePrice"]
 submission=submission.reindex(columns=columns_titles)
 
-nan_cols = [i for i in testDf.columns if testDf[i].isnull().any()]
-print(nan_cols)
+#nan_cols = [i for i in testDf.columns if testDf[i].isnull().any()]
+#print(nan_cols)
 
 submission.to_csv('sublinreg.csv', encoding='utf-8', index=False)
